@@ -1,11 +1,14 @@
 import React, { useState } from "react";
+import "./App.css";
 import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 function App() {
   const [employees, setEmployees] = useState([]);
+  const [showModal, setShowModal] = useState(false);
   const [editingIndex, setEditingIndex] = useState(null);
-  const [form, setForm] = useState({
-    no: "",
+
+  const [formData, setFormData] = useState({
     lastName: "",
     firstName: "",
     middleInitial: "",
@@ -13,7 +16,7 @@ function App() {
     sex: "",
     csEligibility: "",
     workStatus: "",
-    yearsAsJoCos: "",
+    yearsAsJO: "",
     office: "",
     designation: "",
     natureOfWork: "",
@@ -25,21 +28,24 @@ function App() {
   });
 
   const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSave = () => {
     if (editingIndex !== null) {
+      // Update existing employee
       const updated = [...employees];
-      updated[editingIndex] = form;
+      updated[editingIndex] = formData;
       setEmployees(updated);
       setEditingIndex(null);
     } else {
-      setEmployees([...employees, form]);
+      // Add new employee
+      setEmployees([...employees, formData]);
     }
-    setForm({
-      no: "",
+
+    // Reset form and close modal
+    setFormData({
       lastName: "",
       firstName: "",
       middleInitial: "",
@@ -47,7 +53,7 @@ function App() {
       sex: "",
       csEligibility: "",
       workStatus: "",
-      yearsAsJoCos: "",
+      yearsAsJO: "",
       office: "",
       designation: "",
       natureOfWork: "",
@@ -57,150 +63,151 @@ function App() {
       landbankAccount: "",
       tin: ""
     });
+    setShowModal(false);
   };
 
   const handleEdit = (index) => {
-    setForm(employees[index]);
+    setFormData(employees[index]);
     setEditingIndex(index);
+    setShowModal(true);
   };
 
   const handleDelete = (index) => {
-    const updated = employees.filter((_, i) => i !== index);
-    setEmployees(updated);
-  };
+    if (window.confirm("Are you sure you want to delete this employee?")) {
+      const updated = [...employees];
+      updated.splice(index, 1);
+      setEmployees(updated);
+    }
+};
+  const handleDownloadExcel = () => {
+    if (employees.length === 0) {
+      alert("No data to download!");
+      return;
+    }
 
-  const exportToExcel = () => {
+    // Convert employee array to worksheet
     const worksheet = XLSX.utils.json_to_sheet(employees);
+
+    // Create a workbook and append the worksheet
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Employees");
-    XLSX.writeFile(workbook, "employees.xlsx");
+
+    // Generate Excel file and trigger download
+    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    const data = new Blob([excelBuffer], { type: "application/octet-stream" });
+    saveAs(data, "Employee_List.xlsx");
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
 
   return (
-    <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-      <h1 style={{ textAlign: "center" }}>Employee Information System</h1>
-      <form
-        onSubmit={handleSubmit}
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "15px",
-          marginTop: "20px",
-          background: "#f8f8f8",
-          padding: "20px",
-          borderRadius: "8px"
-        }}
-      >
-        <h2 style={{ gridColumn: "1 / -1" }}>Personal Information</h2>
-        <input name="no" value={form.no} onChange={handleChange} placeholder="No." required />
-        <input name="lastName" value={form.lastName} onChange={handleChange} placeholder="Last Name" required />
-        <input name="firstName" value={form.firstName} onChange={handleChange} placeholder="First Name" required />
-        <input name="middleInitial" value={form.middleInitial} onChange={handleChange} placeholder="Middle Initial" />
-        <input type="date" name="dateOfBirth" value={form.dateOfBirth} onChange={handleChange} placeholder="Date of Birth" />
-        <input name="sex" value={form.sex} onChange={handleChange} placeholder="Sex" />
-        <input name="pwd" value={form.pwd} onChange={handleChange} placeholder="PWD (Y/N)" />
-        <input name="indigenous" value={form.indigenous} onChange={handleChange} placeholder="Indigenous People (Y/N)" />
-        <input name="soloParentId" value={form.soloParentId} onChange={handleChange} placeholder="Solo Parent ID No." />
+    <div className="App">
+      <h1>Employee Information System</h1>
 
-        <h2 style={{ gridColumn: "1 / -1" }}>Employment Information</h2>
-        <input name="csEligibility" value={form.csEligibility} onChange={handleChange} placeholder="CS Eligibility" />
-        <input name="workStatus" value={form.workStatus} onChange={handleChange} placeholder="Work Status" />
-        <input name="yearsAsJoCos" value={form.yearsAsJoCos} onChange={handleChange} placeholder="Years as JO/COS" />
-        <input name="office" value={form.office} onChange={handleChange} placeholder="Office" />
-        <input name="designation" value={form.designation} onChange={handleChange} placeholder="Designation" />
-        <input name="natureOfWork" value={form.natureOfWork} onChange={handleChange} placeholder="Nature of Work" />
+      <button className="add-btn" onClick={() => setShowModal(true)}>
+        ➕ Add Employee
+      </button>
 
-        <h2 style={{ gridColumn: "1 / -1" }}>Financial Information</h2>
-        <input name="landbankAccount" value={form.landbankAccount} onChange={handleChange} placeholder="Landbank Account" />
-        <input name="tin" value={form.tin} onChange={handleChange} placeholder="TIN" />
+      <button className="download-btn" onClick={handleDownloadExcel}>
+        📥 Download Excel
+      </button>
 
-        <button
-          type="submit"
-          style={{
-            gridColumn: "1 / -1",
-            padding: "10px",
-            background: "#007bff",
-            color: "#fff",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer"
-          }}
-        >
-          {editingIndex !== null ? "Update Employee" : "Add Employee"}
-        </button>
-      </form>
 
-      <div style={{ marginTop: "30px" }}>
-        <button onClick={exportToExcel} style={{ marginRight: "10px" }}>📊 Export to Excel</button>
-        <button onClick={handlePrint}>🖨️ Print</button>
-      </div>
-
-      <table
-        style={{
-          width: "100%",
-          marginTop: "20px",
-          borderCollapse: "collapse",
-          background: "#fff"
-        }}
-      >
+      {/* Employee Table */}
+      <table>
         <thead>
           <tr>
-            {[
-              "No.",
-              "Last Name",
-              "First Name",
-              "Middle Initial",
-              "Date of Birth",
-              "Sex",
-              "CS Eligibility",
-              "Work Status",
-              "Years as JO/COS",
-              "Office",
-              "Designation",
-              "Nature of Work",
-              "PWD (Y)",
-              "Indigenous (Y)",
-              "Solo Parent ID No.",
-              "Landbank Account",
-              "TIN",
-              "Actions"
-            ].map((header) => (
-              <th
-                key={header}
-                style={{
-                  border: "1px solid #ccc",
-                  padding: "8px",
-                  background: "#eee",
-                  textAlign: "left"
-                }}
-              >
-                {header}
-              </th>
-            ))}
+            <th>No.</th>
+            <th>Last Name</th>
+            <th>First Name</th>
+            <th>Middle Initial</th>
+            <th>Date of Birth</th>
+            <th>Sex</th>
+            <th>CS Eligibility</th>
+            <th>Work Status</th>
+            <th>Years as JO/COS</th>
+            <th>Office</th>
+            <th>Designation</th>
+            <th>Nature of Work</th>
+            <th>PWD (Y)</th>
+            <th>Indigenous People (Y)</th>
+            <th>Solo Parent ID No.</th>
+            <th>Landbank Account</th>
+            <th>TIN</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           {employees.map((emp, index) => (
             <tr key={index}>
-              {Object.values(emp).map((value, i) => (
-                <td key={i} style={{ border: "1px solid #ccc", padding: "8px" }}>
-                  {value}
-                </td>
-              ))}
-              <td style={{ border: "1px solid #ccc", padding: "8px" }}>
-                <button onClick={() => handleEdit(index)} style={{ marginRight: "5px" }}>✏️ Edit</button>
-                <button onClick={() => handleDelete(index)}>🗑️ Delete</button>
+              <td>{index + 1}</td>
+              <td>{emp.lastName}</td>
+              <td>{emp.firstName}</td>
+              <td>{emp.middleInitial}</td>
+              <td>{emp.dateOfBirth}</td>
+              <td>{emp.sex}</td>
+              <td>{emp.csEligibility}</td>
+              <td>{emp.workStatus}</td>
+              <td>{emp.yearsAsJO}</td>
+              <td>{emp.office}</td>
+              <td>{emp.designation}</td>
+              <td>{emp.natureOfWork}</td>
+              <td>{emp.pwd}</td>
+              <td>{emp.indigenous}</td>
+              <td>{emp.soloParentId}</td>
+              <td>{emp.landbankAccount}</td>
+              <td>{emp.tin}</td>
+              <td>
+                <button
+                  className="edit-btn"
+                  onClick={() => handleEdit(index)}
+                >
+                  ✏️
+                </button>
+                <button
+                  className="delete-btn"
+                  onClick={() => handleDelete(index)}
+                >
+                  🗑️
+                </button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+
+      {/* Modal */}
+      {showModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h2>{editingIndex !== null ? "Edit Employee" : "Add New Employee"}</h2>
+            <div className="form-grid">
+              {Object.keys(formData).map((key) => (
+                <div className="form-group" key={key}>
+                  <label>{key}</label>
+                  <input
+                    type="text"
+                    name={key}
+                    value={formData[key]}
+                    onChange={handleChange}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="modal-actions">
+              <button onClick={handleSave}>
+                {editingIndex !== null ? "Update" : "Save"}
+              </button>
+              <button onClick={() => {
+                setShowModal(false);
+                setEditingIndex(null);
+              }}>Cancel</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
 
 export default App;

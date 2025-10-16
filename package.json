@@ -4,6 +4,7 @@
   "private": true,
   "homepage": "https://cgppemployment-png.github.io/Employment-section-mis",
   "dependencies": {
+    "file-saver": "^2.0.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-scripts": "5.0.1",
