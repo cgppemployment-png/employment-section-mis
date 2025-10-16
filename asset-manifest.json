@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "/employment-section-mis/static/css/main.4c6ebfd3.css",
+    "main.css": "/employment-section-mis/static/css/main.95f9fd4e.css",
     "main.js": "/employment-section-mis/static/js/main.d83b9d6f.js",
     "index.html": "/employment-section-mis/index.html",
-    "main.4c6ebfd3.css.map": "/employment-section-mis/static/css/main.4c6ebfd3.css.map",
+    "main.95f9fd4e.css.map": "/employment-section-mis/static/css/main.95f9fd4e.css.map",
     "main.d83b9d6f.js.map": "/employment-section-mis/static/js/main.d83b9d6f.js.map"
   },
   "entrypoints": [
-    "static/css/main.4c6ebfd3.css",
+    "static/css/main.95f9fd4e.css",
     "static/js/main.d83b9d6f.js"
   ]
 }
